@@ -24,8 +24,7 @@ GOOGLE_POS = {"proper_noun": "固有名詞"}
 
 
 def load_entries(path: Path) -> list[Entry]:
-    # read_text()はCRをLFに変換するため、CRの検出に必要な元の改行が失われる。
-    # バイト列として読み込んでからUTF-8でデコードし、元の改行を保つ。
+    # 改行変換でCRを見逃さないよう、バイト列として読み込んでデコードする。
     try:
         text = path.read_bytes().decode("utf-8")
     except UnicodeDecodeError as error:
@@ -63,12 +62,10 @@ def load_entries(path: Path) -> list[Entry]:
 
 
 def export_microsoft(entries: list[Entry]) -> bytes:
-    # MozcのGuessIMEType()は、!Microsoft IMEで始まる行をMicrosoft形式と判定する。
-    # 非ASCII文字を保持するためにUTF-16LEを使う。BOMを付けることで、Mozcでも
-    # 文字コードをUTF-16と判定できる。改行はWindows向けにCRLFを指定する。
-    # OSによる改行の変換を避けるため、エンコードしたバイト列を出力する。
-    # 現行Microsoft IMEで読み込めるか、追加のヘッダーが必要かは実機で検証する。
-    # Mozcでの形式判定は、Microsoftの公式仕様に適合することの保証にはならない。
+    # Mozcは!Microsoft IMEで始まるヘッダーをMicrosoft形式と判定する。
+    # https://github.com/google/mozc/blob/master/src/dictionary/user_dictionary_importer.cc
+    # 日本語を保持するためUTF-16LEを使い、BOMで文字コードを明示する。
+    # Windows向けにCRLFを指定し、OSによる改行変換を避けてバイト列で出力する。
     lines = ["!Microsoft IME Dictionary Tool"]
     for entry in entries:
         lines.append("\t".join((entry.reading, entry.term, MICROSOFT_POS[entry.pos], entry.note)))
