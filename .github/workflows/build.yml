@@ -1,0 +1,57 @@
+name: Build dictionaries
+
+on:
+  push:
+    branches: [main]
+    tags: ['test-*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+      - name: Build dictionaries
+        run: python scripts/build.py
+      - uses: actions/upload-artifact@v7
+        with:
+          name: imedic-scp-dictionaries
+          path: |
+            dist/microsoft-ime.txt
+            dist/google-japanese-input.txt
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/test-')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: imedic-scp-dictionaries
+          path: dist
+      - name: Create pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          cat > release-notes.txt <<'EOF'
+          Microsoft IME / Google 日本語入力向けの辞書ファイルです。
+          使用しているIMEに対応するファイルをダウンロードしてインポートしてください。
+          EOF
+          gh release create "$RELEASE_TAG" \
+            dist/microsoft-ime.txt dist/google-japanese-input.txt \
+            --verify-tag --prerelease --title "$RELEASE_TAG" \
+            --notes-file release-notes.txt
