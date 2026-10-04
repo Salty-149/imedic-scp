@@ -1,6 +1,6 @@
 # imedic-scp
 
-SCP関連の日本語IME辞書です。編集元のCSVからMicrosoft IMEとGoogle 日本語入力向けの辞書ファイルを生成します。生成した辞書の登録は実機で確認済みです。
+SCP財団における世界観用語を扱うための日本語IME辞書です。編集元のCSVからMicrosoft IMEとGoogle 日本語入力向けの辞書ファイルを生成します。生成した辞書の登録は実機で確認済みです。
 
 ## 辞書のインポート
 
@@ -30,7 +30,7 @@ SCP関連の日本語IME辞書です。編集元のCSVからMicrosoft IMEとGoog
 
 ## 生成とテスト
 
-Python 3.14で、リポジトリのルートから実行してください。追加ライブラリは不要です。
+Python 3.12以上で、リポジトリのルートから実行してください。追加ライブラリは不要です。GitHub Actionsでの辞書生成にはPython 3.14を使用します。
 
 ```sh
 python scripts/build.py
